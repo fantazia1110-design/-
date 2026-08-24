@@ -1,24 +1,30 @@
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
-const databaseUrl = process.env.DATABASE_URL;
+/**
+ * تهيئة كسولة: يُقرأ DATABASE_URL عند أول استعلام فعلي فقط —
+ * حتى لا يفشل «جمع بيانات الصفحات» أثناء البناء على منصات مثل Vercel
+ * حيث قد تكون متغيرات البيئة غير موجودة لحظة build.
+ */
+let client: NodePgDatabase | undefined;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
+function getClient(): NodePgDatabase {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is required");
+  }
+  if (!client) {
+    client = drizzle(new Pool({ connectionString: databaseUrl }));
+  }
+  return client;
 }
 
-const globalForDb = globalThis as typeof globalThis & {
-  __arenaNextJsPostgresqlPool?: Pool;
-};
-
-export const pool =
-  globalForDb.__arenaNextJsPostgresqlPool ??
-  new Pool({
-    connectionString: databaseUrl,
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.__arenaNextJsPostgresqlPool = pool;
-}
-
-export const db = drizzle(pool);
+export const db = new Proxy({} as NodePgDatabase, {
+  get(_target, prop: string | symbol) {
+    const c = getClient() as unknown as Record<string | symbol, unknown>;
+    const value = Reflect.get(c, prop);
+    return typeof value === "function"
+      ? (value as (...args: unknown[]) => unknown).bind(c)
+      : value;
+  },
+});
