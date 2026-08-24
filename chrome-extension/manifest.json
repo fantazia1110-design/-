@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "مسنجر برودكاستر — رسائل ماسنجر الجماعية",
+  "short_name": "برودكاستر",
+  "version": "1.0.1",
+  "description": "إرسال رسائل نصية وصور وفيديو لعملاء صفحات فيسبوك عبر ماسنجر — تسجيل دخول بفيسبوك من الشريط الجانبي لكروم.",
+  "permissions": ["sidePanel", "tabs", "storage"],
+  "host_permissions": [
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "action": {
+    "default_title": "فتح مسنجر برودكاستر",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
